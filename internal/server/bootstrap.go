@@ -208,6 +208,15 @@ func Bootstrap(opt BootstrapOptions) (BootstrapResult, error) {
 		}
 	}
 
+	// Air-gapped installs can point the gateway at their own price sheet.
+	if u := strings.TrimSpace(opt.Getenv("BIFROST_PRICING_URL")); u != "" && res.Mode == ModeLive {
+		pricing := map[string]any{"pricing_url": u, "pricing_sync_interval": 86400}
+		if mp := strings.TrimSpace(opt.Getenv("BIFROST_MODEL_PARAMETERS_URL")); mp != "" {
+			pricing["model_parameters_url"] = mp
+		}
+		cfg["framework"] = map[string]any{"pricing": pricing}
+	}
+
 	vks := []map[string]any{{
 		"id": "vk-heimdall", "name": "heimdall", "value": "env.HEIMDALL_VK", "is_active": true, "allow_all_providers": true,
 	}}
@@ -264,6 +273,21 @@ func Bootstrap(opt BootstrapOptions) (BootstrapResult, error) {
 		res.Env["HEIMDALL_TAVILY_RELAY"] = "tavily"
 	}
 	return res, nil
+}
+
+// EnvFile renders the environment as KEY=VALUE lines, for an env file that
+// both containers of a compose deployment load.
+func (r BootstrapResult) EnvFile() string {
+	keys := make([]string, 0, len(r.Env))
+	for k := range r.Env {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	var b strings.Builder
+	for _, k := range keys {
+		fmt.Fprintf(&b, "%s='%s'\n", k, strings.ReplaceAll(r.Env[k], "'", `'\''`))
+	}
+	return b.String()
 }
 
 // ShellExports renders the environment as POSIX export lines.

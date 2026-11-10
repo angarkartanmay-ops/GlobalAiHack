@@ -61,6 +61,11 @@ type Config struct {
 	SimKey     string
 	SimTraffic bool
 
+	// ExposeGateway mounts the gateway under /gateway on Heimdall's port, for
+	// hosts that publish a single port. The gateway keeps its own
+	// authentication; it must be started with -base-path /gateway.
+	ExposeGateway bool
+
 	// Virtual keys the sample-traffic sender uses in live mode
 	// (checkout-app, support-bot, search-service, legacy-batch).
 	TrafficKeys [4]string
@@ -150,6 +155,7 @@ func LoadConfig() Config {
 		AllowAnonymous:   envBool("HEIMDALL_ALLOW_ANONYMOUS", false),
 		SimKey:           env("HEIMDALL_SIM_KEY", sim.DefaultKey),
 		SimTraffic:       envBool("HEIMDALL_SIM_TRAFFIC", true),
+		ExposeGateway:    envBool("HEIMDALL_EXPOSE_GATEWAY", false),
 	}
 	// With no relay named and a Tavily key in hand, call Tavily directly.
 	// Otherwise assume the conventional relay name.
