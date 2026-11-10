@@ -36,6 +36,7 @@ type BootstrapOptions struct {
 	GatewayURL  string // how Heimdall reaches the gateway
 	Mode        string // "", "sim" or "live"; empty picks live when a provider key is present
 	BudgetUSD   float64
+	NoMCP       bool // do not register Heimdall's MCP server on the gateway
 	Getenv      func(string) string
 }
 
@@ -226,6 +227,26 @@ func Bootstrap(opt BootstrapOptions) (BootstrapResult, error) {
 		"budgets": []map[string]any{{"id": "budget-heimdall", "max_limit": opt.BudgetUSD, "reset_duration": "1d", "virtual_key_id": "vk-heimdall"}},
 	}
 
+	// Register Heimdall's MCP server on the gateway, so agents behind Bifrost
+	// can ask about retirements and check answers. The gateway presents the
+	// dashboard token when one is set.
+	token := strings.TrimSpace(opt.Getenv("HEIMDALL_ADMIN_TOKEN"))
+	if token == "" && res.Mode == ModeLive && strings.TrimSpace(opt.Getenv("HEIMDALL_ALLOW_ANONYMOUS")) == "" {
+		token = sec.AdminToken
+		res.Env["HEIMDALL_ADMIN_TOKEN"] = token
+		res.Notes = append(res.Notes, "HEIMDALL_ADMIN_TOKEN was not set, so one was generated: "+token+" (stored in "+filepath.Join(abs, "heimdall-secrets.json")+"). Set your own to choose it.")
+	}
+	if !opt.NoMCP {
+		client := map[string]any{"name": "heimdall", "connection_type": "http", "connection_string": strings.TrimRight(opt.HeimdallURL, "/") + "/mcp",
+			"auth_type": "none", "tools_to_execute": []string{"*"}}
+		if token != "" {
+			client["auth_type"] = "headers"
+			client["headers"] = map[string]string{"Authorization": "env.HEIMDALL_MCP_AUTHORIZATION"}
+			res.Env["HEIMDALL_MCP_AUTHORIZATION"] = "Bearer " + token
+		}
+		cfg["mcp"] = map[string]any{"client_configs": []any{client}}
+	}
+
 	data, _ := json.MarshalIndent(cfg, "", "  ")
 	if err := os.WriteFile(filepath.Join(abs, "config.json"), append(data, '\n'), 0o644); err != nil {
 		return res, err
@@ -241,10 +262,6 @@ func Bootstrap(opt BootstrapOptions) (BootstrapResult, error) {
 	res.Env["HEIMDALL_TRAFFIC_KEYS"] = strings.Join(traffic[:], ",")
 	if res.Tavily {
 		res.Env["HEIMDALL_TAVILY_RELAY"] = "tavily"
-	}
-	if res.Mode == ModeLive && strings.TrimSpace(opt.Getenv("HEIMDALL_ADMIN_TOKEN")) == "" && strings.TrimSpace(opt.Getenv("HEIMDALL_ALLOW_ANONYMOUS")) == "" {
-		res.Env["HEIMDALL_ADMIN_TOKEN"] = sec.AdminToken
-		res.Notes = append(res.Notes, "HEIMDALL_ADMIN_TOKEN was not set, so one was generated: "+sec.AdminToken+" (stored in "+filepath.Join(abs, "heimdall-secrets.json")+"). Set your own to choose it.")
 	}
 	return res, nil
 }

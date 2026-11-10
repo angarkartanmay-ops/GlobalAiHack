@@ -111,6 +111,11 @@ func New(cfg Config, log *slog.Logger) (*App, error) {
 	return a, nil
 }
 
+// CutoverHealth measures a migration's live traffic from gateway logs.
+func (a *App) CutoverHealth(ctx context.Context, m core.Migration) (*core.CanaryHealth, error) {
+	return a.cut.Health(ctx, m)
+}
+
 // Close releases resources.
 func (a *App) Close() error { return a.Store.Close() }
 
