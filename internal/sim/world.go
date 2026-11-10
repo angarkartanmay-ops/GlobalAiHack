@@ -53,16 +53,18 @@ const HeimdallKey = "sk-bf-sim-heimdall-0000000000000000000000000000000000000009
 
 // traits describe how a simulated model behaves.
 type traits struct {
-	provider          string
-	prompt, output    float64 // USD per token
-	latency           [2]int  // milliseconds, min and max
-	style             string  // classic, concise, verbose
-	jsonFenceEvery    int     // wrap JSON in a markdown fence on every Nth distinct input
-	jsonExtraKeyEvery int     // add an unrequested key on every Nth distinct input
-	toolIntArgEvery   int     // send a numeric id where a string is expected
-	toolSkipEvery     int     // answer in prose instead of calling the tool
-	refuseEvery       int     // refuse on every Nth distinct input
-	dropReturnWindow  bool    // leave a required fact out of the returns answer
+	provider       string
+	prompt, output float64 // USD per token
+	latency        [2]int  // milliseconds, min and max
+	style          string  // classic, concise, verbose
+	// Quirks fire on order numbers divisible by N (or, for refusals, on a
+	// hash of the question), so the same request always behaves the same way.
+	jsonFenceEvery    int  // wrap JSON in a markdown fence
+	jsonExtraKeyEvery int  // add an unrequested key
+	toolIntArgEvery   int  // send a numeric id where a string is expected
+	toolSkipEvery     int  // answer in prose instead of calling the tool
+	refuseEvery       int  // refuse a harmless question
+	dropReturnWindow  bool // leave a required fact out of the returns answer
 	facts             map[string]string
 	apiShutdown       bool // provider API reports shutdown_date for this model
 }
@@ -74,7 +76,7 @@ var models = map[string]traits{
 	"aurora-large-1": {provider: ProviderAurora, prompt: 3e-6, output: 12e-6, latency: [2]int{180, 420}, style: "classic",
 		facts: map[string]string{"api": "v4", "surcharge": "$4.50", "ceo": "Daniel Okafor", "delivery": "2 to 4 business days"}},
 	"aurora-large-2": {provider: ProviderAurora, prompt: 2e-6, output: 8e-6, latency: [2]int{120, 300}, style: "concise",
-		jsonFenceEvery: 7, toolIntArgEvery: 9,
+		jsonFenceEvery: 10, toolIntArgEvery: 12,
 		facts: map[string]string{"api": "v5", "surcharge": "$6.50", "ceo": "Priya Raman", "delivery": "2 to 4 business days"}},
 	"aurora-mini-1": {provider: ProviderAurora, prompt: 0.4e-6, output: 1.6e-6, latency: [2]int{60, 140}, style: "classic", apiShutdown: true,
 		facts: currentFacts},

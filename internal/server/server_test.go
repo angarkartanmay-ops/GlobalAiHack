@@ -172,14 +172,14 @@ func TestHeimdallsOwnTrafficIsNotDemand(t *testing.T) {
 func TestRehearsalSeparatesADropInFromARewrite(t *testing.T) {
 	h := newHarness(t)
 	run := func(candidate string) core.Rehearsal {
-		r := h.app.runner.Run(context.Background(), rehearsal.Options{ID: "r-" + candidate, Baseline: "aurora/aurora-large-1", Candidate: candidate, Samples: 60}, nil)
+		r := h.app.runner.Run(context.Background(), rehearsal.Options{ID: "r-" + candidate, Baseline: "aurora/aurora-large-1", Candidate: candidate, Samples: 200}, nil)
 		if r.Status != "done" {
 			t.Fatalf("%s: %s %s", candidate, r.Status, r.Error)
 		}
 		return r
 	}
 	good := run("aurora/aurora-large-2")
-	if good.Verdict != core.ReadyCaveats || good.Score < 90 || good.CheckFailures[rehearsal.CheckJSON] == 0 {
+	if good.Verdict != core.ReadyCaveats || good.Score < 90 || good.CheckFailures[rehearsal.CheckJSON] != 4 || good.CheckFailures[rehearsal.CheckToolCalls] != 2 {
 		t.Errorf("aurora-large-2: verdict=%s score=%.1f failures=%v", good.Verdict, good.Score, good.CheckFailures)
 	}
 	if good.FresherCount == 0 || good.StalerCount != 0 || good.CostDeltaPct >= 0 {

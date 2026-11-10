@@ -225,7 +225,7 @@ type pricing struct{ prompt, completion float64 }
 // called with partial state so a UI can follow along.
 func (r *Runner) Run(ctx context.Context, opt Options, progress func(core.Rehearsal)) core.Rehearsal {
 	if opt.Samples <= 0 {
-		opt.Samples = 25
+		opt.Samples = 40
 	}
 	if opt.MaxTiebreaks <= 0 {
 		opt.MaxTiebreaks = 6
@@ -448,6 +448,19 @@ func clip(s string, n int) string {
 	return s
 }
 
+// times renders a count the way a sentence wants it.
+func times(n int) string {
+	switch n {
+	case 0:
+		return "never"
+	case 1:
+		return "once"
+	case 2:
+		return "twice"
+	}
+	return fmt.Sprintf("%d times", n)
+}
+
 func median(v []float64) float64 {
 	if len(v) == 0 {
 		return 0
@@ -526,6 +539,6 @@ func summarize(reh *core.Rehearsal) {
 		reh.Summary += fmt.Sprintf(" Only %d distinct requests were available to replay, so treat this as indicative.", n)
 	}
 	if reh.FresherCount > 0 || reh.StalerCount > 0 {
-		reh.Summary += fmt.Sprintf(" On time-sensitive facts checked against the live web, the candidate was more current %d time(s) and less current %d time(s).", reh.FresherCount, reh.StalerCount)
+		reh.Summary += fmt.Sprintf(" On time-sensitive facts checked against the live web, the candidate was more current %s and out of date %s.", times(reh.FresherCount), times(reh.StalerCount))
 	}
 }

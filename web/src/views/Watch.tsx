@@ -30,7 +30,7 @@ function Horizon({ exposures, onOpen }: { exposures: Exposure[]; onOpen: (id: st
   let lastAbove = -Infinity, lastBelow = -Infinity;
   const placed = future.map((e, i) => {
     const x = xOf(e.days_left ?? 0);
-    let above = i % 2 === 0;
+    let above = (i + (past.length ? 1 : 0)) % 2 === 0;
     const sameSide = above ? lastAbove : lastBelow;
     const otherSide = above ? lastBelow : lastAbove;
     if (x - sameSide < 170 && x - otherSide > x - sameSide) above = !above;
@@ -67,7 +67,7 @@ function Horizon({ exposures, onOpen }: { exposures: Exposure[]; onOpen: (id: st
       <svg viewBox={`0 0 ${W} ${H}`} role="group" aria-label="Timeline of scheduled model shutdowns">
         <line x1={24} y1={axisY} x2={x0} y2={axisY} stroke="var(--ember)" strokeWidth="2" strokeDasharray="2 5" opacity="0.55" />
         <line x1={x0} y1={axisY} x2={x1} y2={axisY} stroke="var(--line)" strokeWidth="2" />
-        <line x1={x0} y1={axisY - 30} x2={x0} y2={axisY + 30} stroke="var(--text-2)" strokeWidth="1.5" />
+        <line x1={x0} y1={axisY - 13} x2={x0} y2={axisY + 30} stroke="var(--text-2)" strokeWidth="1.5" />
         <text className="hz-tick" x={x0} y={axisY + 46} textAnchor="middle" style={{ fill: "var(--text-2)", fontWeight: 600 }}>Today</text>
         {ticks.map((d) => (
           <g key={d}>
@@ -75,7 +75,7 @@ function Horizon({ exposures, onOpen }: { exposures: Exposure[]; onOpen: (id: st
             <text className="hz-tick" x={xOf(d)} y={H - 4} textAnchor="middle">{d} d</text>
           </g>
         ))}
-        {past.map((e, i) => mark(e, 62 - i * 6, i % 2 === 0, "start", `p${i}`))}
+        {past.map((e, i) => mark(e, 62 - i * 6, true, "start", `p${i}`))}
         {placed.map(({ e, x, above }, i) => mark(e, x, above, x > x1 - 110 ? "end" : x < x0 + 40 ? "start" : "middle", `f${i}`))}
       </svg>
     </div>
@@ -201,6 +201,34 @@ export function Watch({ overview, status, loading, error, onOpen, onNavigate, re
                 <h2 className="section-title">Models</h2>
                 <p className="section-note">Most urgent first. Traffic figures come from the gateway's own logs.</p>
               </div>
+            </div>
+            <div className="cards">
+              {exposures.map((e) => {
+                const id = `${e.provider}/${e.model}`;
+                const f = e.finding;
+                const d = e.days_left;
+                return (
+                  <button key={id} className="card-row" onClick={() => onOpen(id)}>
+                    <div className="row between" style={{ flexWrap: "nowrap", alignItems: "flex-start" }}>
+                      <div className="cell-model" style={{ minWidth: 0 }}><span className="mono">{e.model}</span><span className="muted">{e.provider}</span></div>
+                      {f?.shutdown_date ? (
+                        <div className={`days right ${e.risk === "critical" ? "crit" : e.risk === "high" ? "high" : ""}`}>
+                          {d !== undefined && d >= 0 ? <><b>{d}</b> <span className="soft">{d === 1 ? "day" : "days"}</span></> : <b>Past</b>}
+                        </div>
+                      ) : null}
+                    </div>
+                    <div className="row" style={{ marginTop: 10 }}>
+                      <StatusTag status={f?.status} risk={e.risk} />
+                      {f?.shutdown_date ? <span className="muted" style={{ fontSize: 13 }}>{longDate(f.shutdown_date, f.date_precision)}</span> : null}
+                    </div>
+                    {e.traffic ? <div style={{ marginTop: 12 }}><ShareBar share={e.traffic.request_share} risk={atRisk(e)} /></div> : null}
+                    <div className="row between" style={{ marginTop: 12 }}>
+                      <div className="chips">{(e.traffic?.consumers ?? []).slice(0, 3).map((c) => <span className="chip" key={c.id}>{c.name}</span>)}</div>
+                      <NextStep e={e} />
+                    </div>
+                  </button>
+                );
+              })}
             </div>
             <div className="table-wrap">
               <table className="grid">

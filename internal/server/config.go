@@ -142,7 +142,7 @@ func LoadConfig() Config {
 		Lookback:         envDuration("HEIMDALL_LOOKBACK", 7*24*time.Hour),
 		ScanInterval:     envDuration("HEIMDALL_SCAN_INTERVAL", 12*time.Hour),
 		SourcesFile:      env("HEIMDALL_SOURCES_FILE", ""),
-		RehearsalSamples: envInt("HEIMDALL_REHEARSAL_SAMPLES", 25),
+		RehearsalSamples: envInt("HEIMDALL_REHEARSAL_SAMPLES", 40),
 		RehearsalBudget:  envFloat("HEIMDALL_REHEARSAL_BUDGET_USD", 1.0),
 		AutoRollback:     envBool("HEIMDALL_CANARY_AUTO_ROLLBACK", false),
 		AlertWebhook:     env("HEIMDALL_ALERT_WEBHOOK_URL", ""),

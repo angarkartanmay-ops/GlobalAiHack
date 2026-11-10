@@ -125,11 +125,30 @@ export function ClaimTag({ verdict }: { verdict?: string }) {
 
 const dateRe = /\b(?:\d{4}-\d{2}-\d{2}|(?:January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sept?|Oct|Nov|Dec)\.? \d{1,2}(?:st|nd|rd|th)?,? \d{4}|\d{1,2} (?:January|February|March|April|May|June|July|August|September|October|November|December) \d{4}|(?:January|February|March|April|May|June|July|August|September|October|November|December) \d{4})\b/g;
 
-/** Renders a quote with its dates marked, so the reader's eye lands on what matters. */
-function Quote({ text }: { text: string }) {
+const months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+
+/** Normalises a date as written in a source to YYYY-MM-DD (or YYYY-MM for a bare month). */
+function isoOf(written: string): string {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(written)) return written;
+  const year = written.match(/\d{4}/)?.[0] ?? "";
+  const month = months.findIndex((m) => written.toLowerCase().includes(m)) + 1;
+  const day = written.replace(year, "").match(/\d{1,2}/)?.[0];
+  if (!year || !month) return "";
+  const mm = String(month).padStart(2, "0");
+  return day ? `${year}-${mm}-${day.padStart(2, "0")}` : `${year}-${mm}`;
+}
+
+/**
+ * Renders a quote with the date that matters marked. When the evidence
+ * carries a shutdown date, only that date is marked, so an announcement date
+ * in the same table row is not mistaken for it.
+ */
+function Quote({ text, highlight }: { text: string; highlight?: string }) {
   const parts: ReactNode[] = [];
   let last = 0;
   for (const m of text.matchAll(dateRe)) {
+    const iso = isoOf(m[0]);
+    if (highlight && !(iso === highlight || (iso.length === 7 && highlight.startsWith(iso)))) continue;
     const i = m.index ?? 0;
     if (i > last) parts.push(text.slice(last, i));
     parts.push(<mark key={i}>{m[0]}</mark>);
@@ -147,7 +166,13 @@ export function EvidenceItem({ ev, showApplies = true }: { ev: Evidence; showApp
   const cls = ev.kind === "gateway" ? "gateway" : ev.official ? "official" : "";
   return (
     <div className={`evidence ${cls}`}>
-      <Quote text={ev.quote} />
+      <Quote text={ev.quote} highlight={ev.shutdown_date} />
+      {showApplies && (ev.shutdown_date || ev.replacement) ? (
+        <div className="evidence-read">
+          Read as:{ev.shutdown_date ? <> shutdown <b>{longDate(ev.shutdown_date, ev.date_precision)}</b></> : null}
+          {ev.shutdown_date && ev.replacement ? "," : ""}{ev.replacement ? <> replacement <b className="mono">{ev.replacement}</b></> : null}
+        </div>
+      ) : null}
       <div className="evidence-src">
         {ev.kind === "gateway" ? (
           <span className="tag medium">Provider API</span>
