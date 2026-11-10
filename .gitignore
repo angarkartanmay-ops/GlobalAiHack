@@ -1,0 +1,21 @@
+# local state and build output
+/.dev/
+/bin/
+/data/
+/gateway-data/
+*.db
+*.db-shm
+*.db-wal
+heimdall-secrets.json
+.env
+.env.*
+!.env.example
+
+# dashboard
+/web/node_modules/
+/web/.vite/
+
+# editors and OS
+.DS_Store
+.idea/
+.vscode/
