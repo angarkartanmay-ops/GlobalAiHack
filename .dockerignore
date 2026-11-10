@@ -1,0 +1,9 @@
+.git
+.dev
+bin
+data
+gateway-data
+web/node_modules
+web/dist
+docs/screenshots
+*.db

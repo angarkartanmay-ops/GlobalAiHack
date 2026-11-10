@@ -98,7 +98,7 @@ export function Setup({ status, toast }: { status: Status | null; toast: (m: str
                 </Row>
                 <Row state={gw?.virtual_key ? "ok" : "bad"} title="Virtual key">
                   {gw?.virtual_key ? `Heimdall's key can reach ${gw.models ?? 0} models. Its spend is capped by a budget on the gateway.` :
-                    gw?.healthy ? gw.error ?? "The virtual key was refused." : "Waiting for the gateway."}
+                    gw?.healthy ? gw.error ?? "The gateway returned no models for Heimdall's virtual key." : "Waiting for the gateway."}
                 </Row>
                 <Row state={!tav?.configured ? "bad" : tav.last_error ? "warn" : "ok"} title="Tavily">
                   {!tav?.configured ? "Not configured. Without it the radar can only use dates that provider APIs report." :

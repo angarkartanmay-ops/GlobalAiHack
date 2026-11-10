@@ -1,0 +1,67 @@
+# Heimdall next to a stock Bifrost gateway.
+#
+#   docker compose up --build
+#
+#   Heimdall   http://localhost:8787
+#   Bifrost    http://localhost:8080
+#
+# With no keys set this runs in simulator mode: a real gateway with simulated
+# providers and a simulated web. Put real keys in a .env file (see
+# .env.example) and run it again to go live.
+#
+# The gateway is the official image, unmodified. Its only customisation is an
+# entrypoint wrapper that loads the environment file Heimdall generates.
+
+x-provider-keys: &provider-keys
+  OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+  ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+  GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+  GROQ_API_KEY: ${GROQ_API_KEY:-}
+  MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
+  OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+  TAVILY_API_KEY: ${TAVILY_API_KEY:-}
+
+services:
+  heimdall:
+    build:
+      context: .
+      target: heimdall
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        eval "$$(heimdall bootstrap --gateway-dir /gateway --env-file /gateway/gateway.env \
+          --heimdall-url http://heimdall:8787 --gateway-url http://bifrost:8080)"
+        exec heimdall serve
+    environment:
+      <<: *provider-keys
+      HEIMDALL_MODE: ${HEIMDALL_MODE:-}
+      HEIMDALL_ADMIN_TOKEN: ${HEIMDALL_ADMIN_TOKEN:-}
+      HEIMDALL_ANALYST_MODEL: ${HEIMDALL_ANALYST_MODEL:-}
+      HEIMDALL_ALERT_WEBHOOK_URL: ${HEIMDALL_ALERT_WEBHOOK_URL:-}
+      HEIMDALL_SCAN_INTERVAL: ${HEIMDALL_SCAN_INTERVAL:-12h}
+    volumes:
+      - gateway:/gateway
+      - heimdall:/data
+    ports:
+      - "8787:8787"
+
+  bifrost:
+    image: ${BIFROST_IMAGE:-maximhq/bifrost:latest}
+    depends_on:
+      heimdall:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -a; . /app/data/gateway.env; set +a
+        exec /app/docker-entrypoint.sh /app/main
+    environment:
+      <<: *provider-keys
+    volumes:
+      - gateway:/app/data
+    ports:
+      - "8080:8080"
+
+volumes:
+  gateway:
+  heimdall:

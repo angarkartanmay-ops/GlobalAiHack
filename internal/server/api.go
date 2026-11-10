@@ -8,10 +8,13 @@ import (
 	"fmt"
 	"io/fs"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"sort"
 	"strings"
 	"time"
 
+	"github.com/angarkartanmay-ops/globalaihack/internal/bifrost"
 	"github.com/angarkartanmay-ops/globalaihack/internal/core"
 	"github.com/angarkartanmay-ops/globalaihack/internal/freshness"
 	"github.com/angarkartanmay-ops/globalaihack/internal/rehearsal"
@@ -46,6 +49,13 @@ func (a *App) Handler(ui fs.FS, mcp http.Handler) http.Handler {
 
 	if a.World != nil {
 		mux.Handle("/sim/", http.StripPrefix("/sim", a.World.Handler()))
+	}
+	if a.Cfg.ExposeGateway {
+		if target, err := url.Parse(a.Cfg.BifrostURL); err == nil {
+			// The gateway authenticates these requests itself (dashboard
+			// password, virtual keys); Heimdall only forwards them.
+			mux.Handle("/gateway/", httputil.NewSingleHostReverseProxy(target))
+		}
 	}
 	if mcp != nil {
 		mux.Handle("/mcp", guardHandler(a, mcp))
@@ -181,7 +191,11 @@ func (a *App) handleStatus(w http.ResponseWriter, r *http.Request) {
 			gw["admin"] = true
 		}
 		if ms, err := a.gatewayModels(ctx, false); err != nil {
-			gw["error"] = "Virtual key was refused: " + err.Error()
+			if bifrost.IsStatus(err, 401) || bifrost.IsStatus(err, 403) {
+				gw["error"] = "The gateway refused Heimdall's virtual key: " + err.Error()
+			} else {
+				gw["error"] = "The gateway could not list models from its providers: " + err.Error()
+			}
 		} else {
 			gw["virtual_key"] = true
 			gw["models"] = len(ms)

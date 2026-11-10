@@ -104,6 +104,7 @@ func bootstrap(args []string) {
 	heimdallURL := fs.String("heimdall-url", "http://127.0.0.1:8787", "URL at which the gateway reaches Heimdall (simulator endpoints)")
 	gatewayURL := fs.String("gateway-url", "http://127.0.0.1:8080", "URL at which Heimdall reaches the gateway")
 	budget := fs.Float64("budget", 5, "daily USD budget for Heimdall's virtual key on the gateway")
+	envFile := fs.String("env-file", "", "also write the environment to this file as KEY='VALUE' lines")
 	_ = fs.Parse(args)
 
 	res, err := server.Bootstrap(server.BootstrapOptions{Dir: *dir, Mode: *mode, HeimdallURL: *heimdallURL, GatewayURL: *gatewayURL, BudgetUSD: *budget})
@@ -115,6 +116,12 @@ func bootstrap(args []string) {
 	fmt.Fprintf(os.Stderr, "heimdall bootstrap: mode=%s providers=%v tavily=%v config=%s/config.json\n", res.Mode, res.Providers, res.Tavily, *dir)
 	for _, n := range res.Notes {
 		fmt.Fprintln(os.Stderr, "heimdall bootstrap:", n)
+	}
+	if *envFile != "" {
+		if err := os.WriteFile(*envFile, []byte(res.EnvFile()), 0o600); err != nil {
+			fmt.Fprintln(os.Stderr, "bootstrap:", err)
+			os.Exit(1)
+		}
 	}
 	fmt.Print(res.ShellExports())
 }
