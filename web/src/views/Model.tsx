@@ -308,7 +308,7 @@ export function Model({ id, status, onBack, onOpenRehearsal, toast }: {
           <div className="panel">
             <div className="panel-head">
               <div className="panel-title">Traffic</div>
-              <span className="muted" style={{ fontSize: 13 }}>{win ? `Last ${win >= 48 ? `${Math.round(win / 24)} days` : `${Math.round(win)} hours`}` : ""}</span>
+              <span className="muted" style={{ fontSize: 13 }}>{win ? `Lookback ${win >= 48 ? `${Math.round(win / 24)} days` : `${Math.round(win)} hours`}` : ""}</span>
             </div>
             <div className="panel-body">
               {t ? (

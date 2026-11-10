@@ -116,6 +116,18 @@ func hashOf(s string) int {
 
 func every(n, h int) bool { return n > 0 && h%n == 0 }
 
+// orderEvery reports whether the order number in a message is divisible by n.
+func orderEvery(n int, user string) bool {
+	if n <= 0 {
+		return false
+	}
+	var id int
+	if _, err := fmt.Sscanf(orderRe.FindString(user), "%d", &id); err != nil {
+		return false
+	}
+	return id%n == 0
+}
+
 func (w *World) handleChat(provider string) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
 		var req chatRequest
@@ -195,7 +207,7 @@ func (w *World) application(req chatRequest, t traits, system, user string, last
 	low := strings.ToLower(user)
 	switch {
 	case strings.HasPrefix(system, "Extract a JSON object"):
-		return reply{content: extractJSON(t, user, low, h)}
+		return reply{content: extractJSON(t, user, low)}
 	case strings.HasPrefix(system, "Rewrite the search query"):
 		return reply{content: rewriteQuery(low)}
 	case len(req.Tools) > 0:
@@ -245,7 +257,7 @@ func styled(t traits, s string) string {
 	return s
 }
 
-func extractJSON(t traits, user, low string, h int) string {
+func extractJSON(t traits, user, low string) string {
 	order := ""
 	if m := orderRe.FindString(user); m != "" {
 		order = m
@@ -268,10 +280,10 @@ func extractJSON(t traits, user, low string, h int) string {
 		}
 	}
 	obj := fmt.Sprintf(`{"order_id": %q, "intent": %q, "urgency": %q}`, order, intent, urgency)
-	if every(t.jsonExtraKeyEvery, h) {
+	if orderEvery(t.jsonExtraKeyEvery, user) {
 		obj = fmt.Sprintf(`{"order_id": %q, "intent": %q, "urgency": %q, "confidence": 0.93}`, order, intent, urgency)
 	}
-	if every(t.jsonFenceEvery, h) {
+	if orderEvery(t.jsonFenceEvery, user) {
 		return "```json\n" + obj + "\n```"
 	}
 	return obj
@@ -322,10 +334,10 @@ func orderAssistant(t traits, user string, last chatMessage, h int) reply {
 		return call("track_parcel", fmt.Sprintf(`{"tracking_number": %q}`, tn))
 	}
 	if id := orderRe.FindString(user); id != "" {
-		if every(t.toolSkipEvery, h) {
+		if orderEvery(t.toolSkipEvery, user) {
 			return reply{content: "I'd be happy to help with order " + id + ". Could you confirm the email address on the order first?"}
 		}
-		if every(t.toolIntArgEvery, h) {
+		if orderEvery(t.toolIntArgEvery, user) {
 			return call("lookup_order", fmt.Sprintf(`{"order_id": %s}`, id))
 		}
 		return call("lookup_order", fmt.Sprintf(`{"order_id": %q}`, id))
