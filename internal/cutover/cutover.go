@@ -192,7 +192,9 @@ func (m *Manager) Health(ctx context.Context, mig core.Migration) (*core.CanaryH
 	old, repl := core.ParseModelRef(mig.Model), core.ParseModelRef(mig.Replacement)
 	var oldOK, newOK int
 	var oldLat, newLat float64
-	f := bifrost.LogFilter{RoutingRuleIDs: []string{mig.RuleID}, Start: mig.UpdatedAt.Add(-time.Second), Limit: 200}
+	// Only requests routed since the current stage began count; earlier
+	// stages used the same rule with different targets.
+	f := bifrost.LogFilter{RoutingRuleIDs: []string{mig.RuleID}, Start: mig.UpdatedAt, Limit: 200}
 	for page := 0; page < 5; page++ {
 		f.Offset = page * 200
 		p, err := m.GW.Logs(ctx, f)
@@ -200,6 +202,10 @@ func (m *Manager) Health(ctx context.Context, mig core.Migration) (*core.CanaryH
 			return nil, err
 		}
 		for _, l := range p.Logs {
+			// The gateway's time filter has one-second resolution.
+			if l.Timestamp.Before(mig.UpdatedAt) {
+				continue
+			}
 			if l.FallbackIndex > 0 {
 				h.Fallbacks++
 			}

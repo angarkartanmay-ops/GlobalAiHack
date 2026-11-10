@@ -90,6 +90,8 @@ func idMention(text, id string) string {
 		}
 		rest := strings.TrimRight(lt[end:j], ".:-_@")
 		switch {
+		case rest == "" && lineupQualifier[nextWord(lt, j)]:
+			// "GPT-4o mini" names gpt-4o-mini, not gpt-4o.
 		case rest == "":
 			return MentionExact
 		case snapshotSuffix.MatchString(rest):
@@ -99,28 +101,67 @@ func idMention(text, id string) string {
 	return best
 }
 
+// nextWord returns the word that follows position i, skipping spaces.
+func nextWord(lt string, i int) string {
+	for i < len(lt) && (lt[i] == ' ' || lt[i] == '\t') {
+		i++
+	}
+	j := i
+	for j < len(lt) && (lt[j] >= 'a' && lt[j] <= 'z' || lt[j] >= '0' && lt[j] <= '9') {
+		j++
+	}
+	return lt[i:j]
+}
+
 // displayMention matches a human-written model name against an identifier:
 // "Claude 3 Opus" for claude-3-opus-20240229, "GPT-4 Turbo" for gpt-4-turbo.
+//
+// The name must line up with whole words of the text. "my-gpt-4o-proxy" is
+// one word that merely contains the name, and "gpt-4.1" is one word that
+// continues past "gpt-4"; neither is a mention.
 func displayMention(text, base string) bool {
-	cb := Canon(base)
-	if len(cb) < 5 || !strings.ContainsAny(cb, "0123456789") {
+	want := strings.Fields(Canon(base))
+	if len(Canon(base)) < 5 || !strings.ContainsAny(base, "0123456789") || len(want) == 0 {
 		return false // too generic to match as free text
 	}
-	ct := " " + Canon(text) + " "
-	from := 0
-	for {
-		i := strings.Index(ct[from:], " "+cb+" ")
-		if i < 0 {
-			return false
-		}
-		after := ct[from+i+len(cb)+2:]
-		next, _, _ := strings.Cut(after, " ")
-		// "gpt 4o" followed by "mini" is a different model, not this one.
-		if !modelQualifier[next] {
-			return true
-		}
-		from += i + 1
+	type tok struct {
+		s          string
+		start, end bool // first / last token of its word
 	}
+	var toks []tok
+	words := strings.FieldsFunc(text, func(r rune) bool {
+		return !(unicode.IsLetter(r) || unicode.IsDigit(r) || r == '-' || r == '_' || r == '.' || r == ':' || r == '@')
+	})
+	for _, w := range words {
+		parts := strings.Fields(Canon(w))
+		for i, p := range parts {
+			toks = append(toks, tok{p, i == 0, i == len(parts)-1})
+		}
+	}
+scan:
+	for i := 0; i+len(want) <= len(toks); i++ {
+		if !toks[i].start || !toks[i+len(want)-1].end {
+			continue
+		}
+		for k, w := range want {
+			if toks[i+k].s != w {
+				continue scan
+			}
+		}
+		// "gpt 4o" followed by "mini" is a different model, not this one.
+		if n := i + len(want); n < len(toks) && modelQualifier[toks[n].s] {
+			continue
+		}
+		return true
+	}
+	return false
+}
+
+// lineupQualifier lists the words that, directly after a model identifier,
+// unambiguously name a sibling model.
+var lineupQualifier = map[string]bool{
+	"mini": true, "nano": true, "micro": true, "lite": true, "flash": true, "pro": true, "max": true, "turbo": true,
+	"instant": true, "haiku": true, "sonnet": true, "opus": true, "instruct": true, "realtime": true, "codex": true, "plus": true,
 }
 
 // modelQualifier lists words that, directly after a model name, name a
