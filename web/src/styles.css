@@ -470,6 +470,14 @@ pre.code { margin: 0; font-family: var(--mono); font-size: 12.5px; line-height: 
   .event-time { grid-column: 2; }
   .panel-body { padding: 16px; }
   .panel-head { padding: 14px 16px; }
+  .panel { min-width: 0; }
+  table.env, table.env tbody, table.env tr, table.env td { display: block; }
+  table.env tr { padding: 10px 0; border-bottom: 1px solid var(--line-soft); }
+  table.env tr:last-child { border-bottom: 0; }
+  table.env td { padding: 2px 0; border-bottom: 0; white-space: normal; }
+  table.env td:first-child { padding-right: 0; white-space: normal; overflow-wrap: anywhere; }
+  code { overflow-wrap: anywhere; }
+  .kv dd { overflow-wrap: anywhere; }
 }
 
 @media (prefers-reduced-motion: reduce) {
