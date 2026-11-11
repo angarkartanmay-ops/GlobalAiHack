@@ -1,0 +1,52 @@
+name: deploy-space
+
+# Mirrors this repository to a Hugging Face Docker Space.
+#
+# It does nothing until both of these are set on the repository:
+#   secret   HF_TOKEN   a Hugging Face token with write access
+#   variable HF_SPACE   the Space, as owner/name
+#
+# The Space must exist and use the Docker SDK.
+
+on:
+  push:
+    branches: [main, "tanmay/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      HF_SPACE: ${{ vars.HF_SPACE }}
+    steps:
+      - name: Check configuration
+        id: cfg
+        run: |
+          if [ -n "$HF_TOKEN" ] && [ -n "$HF_SPACE" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "HF_TOKEN or HF_SPACE is not set; skipping."
+          fi
+      - uses: actions/checkout@v4
+        if: steps.cfg.outputs.ready == 'true'
+      - name: Push to the Space
+        if: steps.cfg.outputs.ready == 'true'
+        run: |
+          set -eu
+          work="$(mktemp -d)"
+          # Everything the image build needs; screenshots stay out to keep the Space small.
+          git archive HEAD | tar -x -C "$work"
+          rm -rf "$work/docs/screenshots" "$work/.github"
+          # Spaces read their settings from front matter at the top of README.md.
+          { cat deploy/space-header.md; cat README.md; } > "$work/README.md"
+          cd "$work"
+          git init -q -b main
+          git config user.name "heimdall-deploy"
+          git config user.email "heimdall-deploy@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Deploy ${GITHUB_SHA}"
+          git push -q --force "https://user:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE}" main

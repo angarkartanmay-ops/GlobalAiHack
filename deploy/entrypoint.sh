@@ -13,7 +13,12 @@ HOME_DIR="${HEIMDALL_HOME:-/app/data}"
 BIFROST_BIN="${BIFROST_BIN:-/app/main}"
 HEIMDALL_BIN="${HEIMDALL_BIN:-heimdall}"
 
-mkdir -p "$HOME_DIR/gateway" "$HOME_DIR/heimdall"
+# Some hosts mount the image read-only and leave only /tmp writable.
+if ! mkdir -p "$HOME_DIR/gateway" "$HOME_DIR/heimdall" 2>/dev/null || ! touch "$HOME_DIR/.write-test" 2>/dev/null; then
+  echo "$HOME_DIR is not writable; keeping state in /tmp/heimdall (it will not survive a restart)" >&2
+  HOME_DIR=/tmp/heimdall
+  mkdir -p "$HOME_DIR/gateway" "$HOME_DIR/heimdall"
+fi
 
 # Writes the gateway's config.json for this environment and prints the
 # variables both processes need. Secrets stay in the environment; the file

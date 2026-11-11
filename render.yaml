@@ -1,0 +1,23 @@
+# Render Blueprint: one web service running the all-in-one image.
+# Leave every key empty to deploy the simulator; fill them in to go live.
+services:
+  - type: web
+    name: heimdall
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    envVars:
+      - key: PORT
+        value: "7860"
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: TAVILY_API_KEY
+        sync: false
+      - key: HEIMDALL_ADMIN_TOKEN
+        sync: false
+      - key: HEIMDALL_ALERT_WEBHOOK_URL
+        sync: false
