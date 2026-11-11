@@ -4,6 +4,10 @@
 
 In Norse myth Heimdall is the watchman who guards the Bifröst bridge and sees trouble long before it arrives. This is that, for the Bifrost AI gateway.
 
+![The landing page: a scroll-driven walk through the problem, the watch, the evidence, the rehearsal and the cutover](docs/screenshots/landing-hero.png)
+
+The site opens on a scroll-driven story (GSAP and Lenis, with a reduced-motion and phone fallback) and the dashboard lives at `#/watch`.
+
 ![The watch: every model serving traffic, placed by how long it has left](docs/screenshots/01-watch.png)
 
 Built for the Geek Room Global AI Hackathon 2026: Bifrost track, *Build a Feature the Open-Source Gateway Is Missing*, combined with the Tavily track, *Build a Stale-Answer Detector for AI Applications*.
