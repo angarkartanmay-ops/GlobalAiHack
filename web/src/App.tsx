@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { KeyRound } from "lucide-react";
 import { api, getToken, setToken, type Overview, type Status } from "./api";
 import { Notice, Spinner, usePoll } from "./ui";
@@ -8,7 +8,10 @@ import { Rehearsal } from "./views/Rehearsal";
 import { Answers } from "./views/Answers";
 import { Activity, Setup } from "./views/Setup";
 
+const Landing = lazy(() => import("./landing/Landing"));
+
 type Route =
+  | { view: "home" }
   | { view: "watch" }
   | { view: "model"; id: string }
   | { view: "rehearsal"; id: string }
@@ -22,10 +25,11 @@ function parse(hash: string): Route {
   switch (parts[0]) {
     case "model": return rest ? { view: "model", id: rest } : { view: "watch" };
     case "rehearsal": return rest ? { view: "rehearsal", id: rest } : { view: "watch" };
+    case "watch": return { view: "watch" };
     case "answers": return { view: "answers" };
     case "activity": return { view: "activity" };
     case "setup": return { view: "setup" };
-    default: return { view: "watch" };
+    default: return { view: "home" };
   }
 }
 
@@ -33,7 +37,7 @@ function href(r: Route): string {
   switch (r.view) {
     case "model": return `#/model/${r.id.split("/").map(encodeURIComponent).join("/")}`;
     case "rehearsal": return `#/rehearsal/${encodeURIComponent(r.id)}`;
-    case "watch": return "#/";
+    case "home": return "#/";
     default: return `#/${r.view}`;
   }
 }
@@ -116,6 +120,14 @@ export function App() {
     return false;
   };
 
+  if (route.view === "home") {
+    return (
+      <Suspense fallback={<div className="gate" />}>
+        <Landing onOpen={() => go({ view: "watch" })} />
+      </Suspense>
+    );
+  }
+
   const st = status.data;
   if (!st) {
     return (
@@ -136,7 +148,7 @@ export function App() {
   return (
     <div className="shell">
       <header className="topbar">
-        <button className="brand" onClick={() => go({ view: "watch" })} aria-label="Heimdall, go to the watch">
+        <button className="brand" onClick={() => go({ view: "home" })} aria-label="Heimdall, back to the overview">
           <Mark /><span className="brand-name">Heimdall</span>
         </button>
         <nav className="nav" aria-label="Sections">

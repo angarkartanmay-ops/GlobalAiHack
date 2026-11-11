@@ -283,3 +283,24 @@ export function usePoll<T>(load: () => Promise<T>, intervalMs: number, deps: unk
 
   return { data, error, loading, refresh };
 }
+
+/** Counts up once when it first appears. Later value changes snap, so polling never replays it. */
+export function CountUp({ to, fmt = (n) => String(Math.round(n)), ms = 900 }: { to: number; fmt?: (n: number) => string; ms?: number }) {
+  const reduce = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const [v, setV] = useState(reduce ? to : 0);
+  const played = useRef(false);
+  useEffect(() => {
+    if (played.current || reduce) { setV(to); return; }
+    played.current = true;
+    let raf = 0;
+    const t0 = performance.now();
+    const step = (now: number) => {
+      const k = Math.min(1, (now - t0) / ms);
+      setV(to * (1 - Math.pow(1 - k, 3)));
+      if (k < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [to]); // eslint-disable-line react-hooks/exhaustive-deps
+  return <>{fmt(v)}</>;
+}

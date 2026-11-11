@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ChevronRight, RefreshCw } from "lucide-react";
 import { api, type Exposure, type Overview, type Status } from "../api";
-import { ConfidenceTag, Notice, ShareBar, Spinner, StatusTag, VerdictTag, ago, longDate, modelName, money, num, pct, windowLabel } from "../ui";
+import { ConfidenceTag, CountUp, Notice, ShareBar, Spinner, StatusTag, VerdictTag, ago, longDate, modelName, money, num, pct, windowLabel } from "../ui";
 
 const stageText: Record<string, string> = { armed: "Safety net armed", canary: "Canary", promoted: "Cut over" };
 
@@ -167,12 +167,12 @@ export function Watch({ overview, status, loading, error, onOpen, onNavigate, re
           <div className="figures">
             <div className="figure">
               <div className="figure-label">Models serving traffic</div>
-              <div className="figure-value">{s.models}</div>
+              <div className="figure-value"><CountUp to={s.models} /></div>
               <div className="figure-note">{win ? `${num(win.requests)} requests in the last ${windowLabel(win.days)}` : ""}</div>
             </div>
             <div className="figure">
               <div className="figure-label">Scheduled for shutdown</div>
-              <div className={`figure-value ${s.at_risk ? "alert" : ""}`}>{s.at_risk}</div>
+              <div className={`figure-value ${s.at_risk ? "alert" : ""}`}><CountUp to={s.at_risk} /></div>
               <div className="figure-note">
                 {retiredLive ? `${retiredLive} already shut down and still called` : s.at_risk ? "None has been shut down yet" : s.unchecked ? `${s.unchecked} not checked yet` : "No retirement notices found"}
               </div>
@@ -180,13 +180,13 @@ export function Watch({ overview, status, loading, error, onOpen, onNavigate, re
             <div className="figure">
               <div className="figure-label">Nearest shutdown</div>
               <div className={`figure-value ${s.nearest && s.nearest.days <= 14 ? "crit" : s.nearest && s.nearest.days <= 45 ? "alert" : ""}`}>
-                {s.nearest ? <>{s.nearest.days}<small>{s.nearest.days === 1 ? "day" : "days"}</small></> : "—"}
+                {s.nearest ? <><CountUp to={s.nearest.days} /><small>{s.nearest.days === 1 ? "day" : "days"}</small></> : "—"}
               </div>
               <div className="figure-note">{s.nearest ? <><span className="mono">{modelName(s.nearest.model)}</span> on {longDate(s.nearest.date)}</> : "Nothing scheduled"}</div>
             </div>
             <div className="figure">
               <div className="figure-label">Requests on retiring models</div>
-              <div className={`figure-value ${s.share_at_risk > 0 ? "alert" : ""}`}>{pct(s.share_at_risk)}</div>
+              <div className={`figure-value ${s.share_at_risk > 0 ? "alert" : ""}`}><CountUp to={s.share_at_risk} fmt={(n) => pct(n)} /></div>
               <div className="figure-note">
                 {s.at_risk ? `${money(s.daily_cost_at_risk)} a day${partialDay ? " at the current rate" : ""} · ${s.consumers_at_risk} ${s.consumers_at_risk === 1 ? "application" : "applications"}` : "Nothing exposed"}
               </div>
