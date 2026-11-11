@@ -40,6 +40,12 @@ Without the volume, state is lost on restart: findings are rebuilt by the next s
 
 To also reach the gateway's own dashboard on the same port, add `-e HEIMDALL_EXPOSE_GATEWAY=true -e BIFROST_ADMIN_PASSWORD=...`. It appears under `/gateway/` and asks for the user `heimdall` and that password.
 
+### Vercel
+
+The hosted demo runs on Vercel's container runtime, which builds the root `Dockerfile`. To take that deployment live, add the keys from the table above as environment variables on the Vercel project and redeploy.
+
+Vercel recycles idle containers and gives them no persistent disk. That suits a demo, but in live use it means the gateway's logs and any routing rule Heimdall created disappear whenever the container is recycled. For anything you rely on, use a host with a persistent volume.
+
 ### Render
 
 `render.yaml` in this repository is a Render Blueprint. In Render choose **New → Blueprint**, pick this repository, and fill in the keys it asks for. Leave them all empty to deploy the simulator.

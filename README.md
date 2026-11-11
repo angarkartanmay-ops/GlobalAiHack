@@ -8,6 +8,10 @@ In Norse myth Heimdall is the watchman who guards the Bifröst bridge and sees t
 
 Built for the Geek Room Global AI Hackathon 2026: Bifrost track, *Build a Feature the Open-Source Gateway Is Missing*, combined with the Tavily track, *Build a Stale-Answer Detector for AI Applications*.
 
+**Live demo:** <https://heimdall-watch-six.vercel.app> runs the container from this repository in simulator mode: a real Bifrost gateway, with invented providers and an invented web behind it. The first visit after a quiet period takes about twenty seconds while the gateway boots, and the demo resets when the host recycles the container.
+
+**Also here:** [the pitch deck](docs/Heimdall.pptx) · [demo script](docs/DEMO.md) · [how the evidence rules work](docs/EVIDENCE.md) · [going live](docs/GO-LIVE.md)
+
 ---
 
 ## The problem
@@ -217,7 +221,7 @@ This matters, so plainly:
 ## Limits
 
 - Rehearsals replay chat completions. Responses-API, embeddings and multimodal traffic are inventoried but not rehearsed.
-- A rehearsal needs request content in the gateway's logs. With content logging off, only the deterministic checks that need no content are unavailable too; Heimdall says so.
+- A rehearsal needs request content in the gateway's logs. With content logging off there is nothing to replay, and Heimdall says so.
 - The safety-net stage relies on the provider returning an error for the retired model. Cut over before the shutdown date rather than relying on it.
 - Lifecycle page locations are a starting list (`HEIMDALL_SOURCES_FILE` overrides it). A page that has moved fails to extract and the domain-restricted search finds its successor.
 - State is one embedded file. Heimdall keeps only its conclusions; traffic stays in the gateway's log store.
