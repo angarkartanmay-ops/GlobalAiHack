@@ -37,14 +37,16 @@ Extract for provider lifecycle pages; domain-restricted Search per model; an ope
 
 ## Tech
 
-Go (one static binary, dashboard embedded), React and TypeScript for the dashboard, bbolt for state. Docker image built on `maximhq/bifrost`.
+Go (one static binary, dashboard embedded), React and TypeScript for the dashboard and a scroll-driven landing page (GSAP, Lenis), bbolt for state. Docker image built on `maximhq/bifrost`.
 
 ## Links
 
 - Repository: https://github.com/angarkartanmay-ops/GlobalAiHack
-- Live demo (simulator mode): https://heimdall-watch-six.vercel.app
-- Demo video: to be added
-- Deck: `docs/Heimdall.pptx` in the repository
+- Live demo (simulator mode, no login): https://heimdall-sim.vercel.app
+- Demo video: a captioned walkthrough, about four minutes (upload it and paste the link here)
+- Deck: `docs/Heimdall.pptx`, also as `docs/Heimdall.pdf`
+
+The public demo is a separate deployment with no keys, so judges can use every feature without a token and without spending anything. A deployment with real keys is locked behind `HEIMDALL_ADMIN_TOKEN` and is not the one to share.
 
 ## Testing and verification, stated plainly
 

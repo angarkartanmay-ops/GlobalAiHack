@@ -12,9 +12,9 @@ The site opens on a scroll-driven story (GSAP and Lenis, with a reduced-motion a
 
 Built for the Geek Room Global AI Hackathon 2026: Bifrost track, *Build a Feature the Open-Source Gateway Is Missing*, combined with the Tavily track, *Build a Stale-Answer Detector for AI Applications*.
 
-**Live demo:** <https://heimdall-watch-six.vercel.app> runs the container from this repository in simulator mode: a real Bifrost gateway, with invented providers and an invented web behind it. The first visit after a quiet period takes about twenty seconds while the gateway boots, and the demo resets when the host recycles the container.
+**Live demo:** <https://heimdall-sim.vercel.app> runs the container from this repository in simulator mode, open to anyone with no login: a real Bifrost gateway, with invented providers and an invented web behind it. Start on the landing page, then **Open the live demo** for the dashboard. The first visit after a quiet period takes about twenty seconds while the gateway boots, and the demo resets when the host recycles the container.
 
-**Also here:** [the pitch deck](docs/Heimdall.pptx) · [demo script](docs/DEMO.md) · [how the evidence rules work](docs/EVIDENCE.md) · [going live](docs/GO-LIVE.md)
+**Also here:** [the pitch deck](docs/Heimdall.pptx) ([PDF](docs/Heimdall.pdf)) · [demo script](docs/DEMO.md) · [how the evidence rules work](docs/EVIDENCE.md) · [going live](docs/GO-LIVE.md)
 
 ---
 
