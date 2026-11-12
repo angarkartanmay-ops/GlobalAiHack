@@ -8,6 +8,10 @@ Start the container a minute before recording so the first scan has finished:
 docker run --rm -p 7860:7860 heimdall
 ```
 
+A captioned recording of this walk-through, made against the simulator, is the submission video. To record your own, the same steps work on <https://heimdall-sim.vercel.app>.
+
+The site opens on the landing page at `/`. Scroll it for the story, or press **Open the live demo** to go straight to the dashboard at `#/watch`.
+
 ## 0:00 The problem (20 s)
 
 Show the watch.

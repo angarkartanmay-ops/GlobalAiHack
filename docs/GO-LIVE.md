@@ -44,6 +44,8 @@ To also reach the gateway's own dashboard on the same port, add `-e HEIMDALL_EXP
 
 The hosted demo runs on Vercel's container runtime, which builds the root `Dockerfile`. To take that deployment live, add the keys from the table above as environment variables on the Vercel project and redeploy.
 
+For a hackathon or any public showcase, run two Vercel projects from the same repository: one with no keys, which stays in simulator mode and open to everyone, and one with your keys and `HEIMDALL_ADMIN_TOKEN`, which stays locked. Share only the first. That is how <https://heimdall-sim.vercel.app> is set up.
+
 Vercel recycles idle containers and gives them no persistent disk. That suits a demo, but in live use it means the gateway's logs and any routing rule Heimdall created disappear whenever the container is recycled. For anything you rely on, use a host with a persistent volume.
 
 ### Render
