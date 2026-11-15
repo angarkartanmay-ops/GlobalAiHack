@@ -157,7 +157,8 @@ export function App() {
           ))}
         </nav>
         <div className="topbar-right">
-          {down ? <span className="mode down"><span className="dot" /> Gateway unreachable</span> :
+          {down && st.simulated ? <span className="mode sim"><Spinner size={12} /> Starting the demo gateway</span> :
+            down ? <span className="mode down"><span className="dot" /> Gateway unreachable</span> :
             st.simulated ? <span className="mode sim" title="A real Bifrost gateway, with simulated providers and a simulated web"><span className="dot" /> Simulated data</span> :
               <span className="mode live"><span className="dot" /> Live</span>}
           {st.auth_required && getToken() ? (

@@ -115,6 +115,7 @@ export function Watch({ overview, status, loading, error, onOpen, onNavigate, re
   const exposures = overview?.exposures ?? [];
   const retiredLive = exposures.filter((e) => e.finding?.status === "retired" && (e.traffic?.requests ?? 0) > 0).length;
   const partialDay = !!win && win.days < 1;
+  const waking = !!status?.simulated && !!status.gateway && !status.gateway.healthy;
 
   return (
     <>
@@ -133,9 +134,14 @@ export function Watch({ overview, status, loading, error, onOpen, onNavigate, re
         </div>
       </div>
 
-      {error ? <div style={{ marginBottom: 18 }}><Notice kind="bad">{error}</Notice></div> : null}
+      {waking ? (
+        <div style={{ marginBottom: 18 }}>
+          <Notice kind="info"><span className="row"><Spinner size={14} /> <span><strong>The demo gateway is starting.</strong> This takes about 20 seconds after a quiet period. The page updates by itself.</span></span></Notice>
+        </div>
+      ) : null}
+      {!waking && error ? <div style={{ marginBottom: 18 }}><Notice kind="bad">{error}</Notice></div> : null}
       {scanError ? <div style={{ marginBottom: 18 }}><Notice kind="bad">{scanError}</Notice></div> : null}
-      {overview?.inventory_error ? (
+      {!waking && overview?.inventory_error ? (
         <div style={{ marginBottom: 18 }}>
           <Notice kind="bad"><strong>Could not read traffic from the gateway.</strong> {overview.inventory_error}{" "}
             <button className="btn ghost sm" onClick={() => onNavigate("setup")}>Check setup</button></Notice>
