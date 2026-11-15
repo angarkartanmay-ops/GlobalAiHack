@@ -10,16 +10,18 @@ export { gsap, ScrollTrigger };
 
 // Palette mirrors styles.css, for tweens that need literal colours.
 export const COLOR = {
-  ground: "#131926",
-  surface: "#1c2535",
-  line: "#2a3549",
-  text: "#f2f4f8",
-  text2: "#a9b4c7",
-  text3: "#8894a8",
-  amber: "#f2b13c",
-  green: "#5fd3a6",
-  blue: "#7db8e8",
-  ember: "#f0705a",
+  ground: "#f2ede2",
+  surface: "#faf7ef",
+  line: "#16191d",
+  text: "#16191d",
+  text2: "#474b52",
+  text3: "#686b70",
+  amber: "#e08f1c",
+  green: "#2a6f4e",
+  blue: "#1f5c86",
+  ember: "#c2371a",
+  paper: "#f2ede2",
+  emberOnNight: "#f2835d",
 };
 
 export type Mode = "full" | "compact" | "reduced";

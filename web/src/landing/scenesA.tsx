@@ -27,7 +27,7 @@ export function Problem() {
     tl.fromTo(ok, { opacity: 0, y: 14 }, { opacity: 1, y: 0, stagger: 0.28, duration: 0.45, ease: "power2.out" }, 0.5);
     tl.fromTo(mark, { opacity: 0, scaleX: 0.6 }, { opacity: 1, scaleX: 1, duration: 0.5, ease: "power2.out", transformOrigin: "left center" }, 3.1);
     tl.fromTo(fail, { opacity: 0, y: 14 }, { opacity: 1, y: 0, stagger: 0.26, duration: 0.45, ease: "power2.out" }, 3.5);
-    tl.fromTo(hot, { color: COLOR.text }, { color: COLOR.ember, stagger: 0.2, duration: 0.5 }, 3.6);
+    tl.fromTo(hot, { color: COLOR.paper }, { color: COLOR.emberOnNight, stagger: 0.2, duration: 0.5 }, 3.6);
     tl.to({}, { duration: 1.4 }, 5.6);
   }, { end: "+=230%" });
 
@@ -36,7 +36,6 @@ export function Problem() {
       <section ref={ref} className="lp-scene lp-problem">
         <div className="lp-wrap lp-grid lp-grid-a">
           <div>
-            <p className="lp-eyebrow"><i />The problem</p>
             <p className="lp-statement">
               {words.map((wd, i) => (
                 <span key={i} className={`lp-word${i >= hotFrom ? " hot" : ""}`}>{wd} </span>
@@ -130,7 +129,7 @@ export function Horizon() {
     tl.to(copyA, { opacity: 0, y: -16, duration: 0.5 }, sw);
     tl.to(copyB, { opacity: 1, y: 0, duration: 0.5 }, sw + 0.3);
     tl.to(ph, { d: 0, duration: 0.5, onUpdate: paintHead }, sw);
-    tl.to(cores, { fill: COLOR.blue, duration: 0.4 }, sw);
+    tl.to(cores, { fill: COLOR.amber, duration: 0.4 }, sw);
     tl.to(dead, { opacity: 0, duration: 0.3 }, sw);
     tl.to(gauge, { v: 100, duration: 0.5, onUpdate: paintGauge }, sw);
     tl.to(gaugeBar, { backgroundColor: COLOR.green, duration: 0.5 }, sw);
@@ -151,7 +150,6 @@ export function Horizon() {
       <section ref={ref} className="lp-scene lp-horizon">
         <div className="lp-wrap lp-grid lp-grid-b">
           <div className="lp-copy">
-            <p className="lp-eyebrow"><i />The watch</p>
             <div className="lp-phases">
               <div className="lp-phase-a">
                 <h2 className="lp-h2">Without a watch, the calendar decides.</h2>
@@ -182,8 +180,8 @@ export function Horizon() {
                 return (
                   <g key={m.name} className="hz-mark">
                     <line x1={x} y1={m.up ? 170 - m.r - 4 : 170 + m.r + 4} x2={x} y2={m.up ? ly + 14 : ly - 18} stroke={COLOR.line} />
-                    <circle cx={x} cy="170" r={m.r + 6} fill={COLOR.blue} opacity="0.12" />
-                    <circle className="hz-core" cx={x} cy="170" r={m.r} fill={COLOR.blue} stroke={COLOR.ground} strokeWidth="2" />
+                    
+                    <circle className="hz-core" cx={x} cy="170" r={m.r} fill={COLOR.amber} stroke={COLOR.text} strokeWidth="1.5" />
                     <text x={x} y={ly - (m.up ? 12 : 0)} textAnchor="middle" className="hz-name">{m.name}</text>
                     <text x={x} y={ly + (m.up ? 2 : 14)} textAnchor="middle" className="hz-sub">{m.share}% of requests · day {m.d}</text>
                     <text x={x} y={ly + (m.up ? 16 : 28)} textAnchor="middle" className="hz-dead">404 from here on</text>
@@ -205,10 +203,10 @@ export function Horizon() {
 // ------------------------------------------------------------------ steps
 
 const STEPS = [
-  { n: "01", t: "Inventory", d: "Which models carry traffic, and for which virtual keys. Read from the gateway's own log aggregates, so Heimdall keeps no copy of your traffic.", tag: "Bifrost logs and aggregates", img: "watch" },
-  { n: "02", t: "Radar", d: "Retirement notices from the provider's own documentation, retrieved with Tavily. Every finding shows the text it rests on.", tag: "Tavily, through a Bifrost relay", img: "evidence" },
-  { n: "03", t: "Rehearsal", d: "Real logged requests replayed against the replacement. A parser catches broken tool calls and JSON; live evidence settles stale facts.", tag: "Logs, a virtual key, a budget", img: "rehearsal" },
-  { n: "04", t: "Cutover", d: "Safety net, canary, cut over. One routing rule matched on the retiring model, removable in a click.", tag: "Bifrost routing rules", img: "cutover" },
+  { n: "1", t: "Inventory", d: "Which models carry traffic, and for which virtual keys. Read from the gateway's own log aggregates, so Heimdall keeps no copy of your traffic.", tag: "Bifrost logs and aggregates", img: "watch" },
+  { n: "2", t: "Radar", d: "Retirement notices from the provider's own documentation, retrieved with Tavily. Every finding shows the text it rests on.", tag: "Tavily, through a Bifrost relay", img: "evidence" },
+  { n: "3", t: "Rehearsal", d: "Real logged requests replayed against the replacement. A parser catches broken tool calls and JSON; live evidence settles stale facts.", tag: "Logs, a virtual key, a budget", img: "rehearsal" },
+  { n: "4", t: "Cutover", d: "Safety net, canary, cut over. One routing rule matched on the retiring model, removable in a click.", tag: "Bifrost routing rules", img: "cutover" },
 ];
 
 export function Steps() {
@@ -238,7 +236,6 @@ export function Steps() {
       <section ref={ref} className="lp-scene lp-steps">
         <div className="lp-wrap lp-grid lp-grid-c">
           <div className="lp-copy">
-            <p className="lp-eyebrow"><i />How it works</p>
             <h2 className="lp-h2">Four steps, each one a Bifrost feature.</h2>
             <ol className="lp-steplist">
               {STEPS.map((s) => (
@@ -255,7 +252,6 @@ export function Steps() {
             </ol>
           </div>
           <div className="lp-window" aria-hidden="true">
-            <div className="lp-window-bar"><span>heimdall</span><span>live demo</span></div>
             <div className="lp-window-body">
               {STEPS.map((s) => (
                 <img key={s.img} className="lp-shot" src={`/media/${s.img}.webp`} alt="" loading="lazy" width="1600" height="1000" />

@@ -254,10 +254,6 @@ This matters, so plainly:
 
 The analyst model is not hardcoded on purpose. A fixed model name in a tool that exists to catch retired models would be the first thing to go stale.
 
-## How this was built
-
-Built with AI assistance (Claude Code), which wrote the code and documentation under the author's direction. Design decisions, the choice of problem and the verification approach are described in the docs so they can be judged on their merits.
-
 ## Licence
 
 MIT. See [LICENSE](LICENSE).

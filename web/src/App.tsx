@@ -42,12 +42,12 @@ function href(r: Route): string {
   }
 }
 
-function Mark() {
+export function Mark({ size = 28 }: { size?: number }) {
   return (
-    <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
-      <rect width="32" height="32" rx="7" fill="var(--surface-2)" />
-      <path d="M5 22.5c4-9.5 18-9.5 22 0" fill="none" stroke="var(--beacon)" strokeWidth="2.4" strokeLinecap="round" />
-      <circle cx="16" cy="14" r="3.2" fill="var(--beacon)" />
+    <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true">
+      <rect width="32" height="32" rx="3" fill="var(--ink)" />
+      <path d="M8 20a8 8 0 0 1 16 0z" fill="#e0622c" />
+      <rect x="5" y="20" width="22" height="2.4" fill="var(--paper)" />
     </svg>
   );
 }

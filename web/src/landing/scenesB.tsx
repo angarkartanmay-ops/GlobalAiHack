@@ -66,7 +66,7 @@ export function Grounding() {
     dim(0, 7.5);
     tl.to(hl, { scaleX: 1, duration: 0.5 }, 7.8);
     tl.to(chips[2], { opacity: 1, y: 0, duration: 0.4 }, 8.3);
-    tl.to(dateSpan, { color: COLOR.amber, duration: 0.3 }, 8.5);
+    tl.to(dateSpan, { color: COLOR.ember, duration: 0.3 }, 8.5);
     tl.to(strikes[1], { scaleX: 1, duration: 0.4 }, 9.0);
     tl.to(stamps[2], { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" }, 9.2);
     tl.to(claims[2], { opacity: 0, y: -18, duration: 0.5 }, 10.5);
@@ -86,7 +86,6 @@ export function Grounding() {
       <section ref={ref} className="lp-scene lp-grounding">
         <div className="lp-wrap lp-grid lp-grid-d">
           <div className="lp-copy">
-            <p className="lp-eyebrow"><i />Evidence</p>
             <h2 className="lp-h2">The model points at the text. Heimdall decides.</h2>
             <ol className="lp-rules">
               {RULES.map(([t, d], i) => (
@@ -197,7 +196,6 @@ export function Rehearsal() {
             </div>
           </div>
           <div className="lp-copy">
-            <p className="lp-eyebrow"><i />Rehearsal</p>
             <h2 className="lp-h2">Prove the replacement on your own traffic.</h2>
             <p className="lp-p">Real requests from the gateway's logs, replayed against the candidate under a budgeted virtual key. Production is never touched.</p>
             <dl className="lp-counts">
@@ -307,7 +305,7 @@ export function Cutover() {
         dot.setAttribute("opacity", "0.95");
         // a request that hits the retired model turns ember, then is served by the replacement
         const ember = s.kind === "fb" && s.u > 0.4 && s.u < 0.62;
-        dot.setAttribute("fill", ember ? COLOR.ember : s.kind === "fb" && s.u >= 0.62 ? COLOR.green : "#ffecc8");
+        dot.setAttribute("fill", ember ? COLOR.ember : s.kind === "fb" && s.u >= 0.62 ? COLOR.green : COLOR.text);
       });
     };
     const st = ScrollTrigger.create({
@@ -350,7 +348,7 @@ export function Cutover() {
     tl.to(state, { toNew: 0.3, duration: 1 }, 5);
 
     stage(3, 8);
-    tl.to(oldNode, { fill: "#3a2224", stroke: COLOR.ember, duration: 0.5 }, 8);
+    tl.to(oldNode, { fill: "#f1d5ca", stroke: COLOR.ember, duration: 0.5 }, 8);
     tl.to(q(".cv-oldlabel"), { opacity: 1, duration: 0.4 }, 8.1);
     tl.to(state, { oldAlive: 0, duration: 0.2 }, 8);
 
@@ -371,7 +369,6 @@ export function Cutover() {
       <section ref={ref} className="lp-scene lp-cutover">
         <div className="lp-wrap lp-grid lp-grid-f">
           <div className="lp-copy">
-            <p className="lp-eyebrow"><i />Cutover</p>
             <h2 className="lp-h2">Cutover is one routing rule.</h2>
             <p className="lp-p">Heimdall never proxies a request. A migration is a single Bifrost rule, matched on the retiring model. Remove it and the gateway behaves exactly as before.</p>
             <ol className="lp-stages">
@@ -380,7 +377,7 @@ export function Cutover() {
           </div>
           <div className="lp-cv-stage">
             <svg viewBox="0 0 840 420" role="img" aria-label="Requests flow from applications through one routing rule to the old model and its replacement">
-              <path className="cv-trunk" d="M176,210 L280,210 L440,210 L470,210" fill="none" stroke={COLOR.line} strokeWidth="2" />
+              <path className="cv-trunk" d="M176,210 L280,210 L440,210 L470,210" fill="none" stroke={COLOR.line} strokeWidth="1.5" />
               <path className="cv-upper" d="M470,210 C515,210 520,105 565,105 L640,105" fill="none" stroke={COLOR.line} strokeWidth="2" />
               <path className="cv-lower" d="M470,210 C515,210 520,315 565,315 L640,315" fill="none" stroke={COLOR.line} strokeWidth="2" />
               <g className="cv-retrylane">
@@ -388,28 +385,28 @@ export function Cutover() {
                 <text x="498" y="214" textAnchor="end" className="cv-cap">fallback</text>
               </g>
               <g>
-                <rect x="24" y="150" width="152" height="120" rx="10" className="cv-box" />
+                <rect x="24" y="150" width="152" height="120" rx="2" className="cv-box" />
                 <text x="100" y="188" textAnchor="middle" className="cv-cap">applications</text>
                 <text x="100" y="214" textAnchor="middle" className="cv-name">checkout-app</text>
                 <text x="100" y="238" textAnchor="middle" className="cv-name">support-bot</text>
               </g>
               <g>
-                <rect className="cv-rule" x="246" y="170" width="228" height="80" rx="10" fill={COLOR.surface} stroke={COLOR.line} strokeWidth="2" />
+                <rect className="cv-rule" x="246" y="170" width="228" height="80" rx="2" fill={COLOR.surface} stroke={COLOR.line} strokeWidth="2" />
                 <text x="360" y="204" textAnchor="middle" className="cv-cap">Bifrost routing rule</text>
                 <text x="360" y="228" textAnchor="middle" className="cv-name">heimdall-aurora-large-1</text>
               </g>
               <g>
-                <rect className="cv-old" x="640" y="66" width="180" height="78" rx="10" fill={COLOR.surface} stroke={COLOR.line} strokeWidth="2" />
+                <rect className="cv-old" x="640" y="66" width="180" height="78" rx="2" fill={COLOR.surface} stroke={COLOR.line} strokeWidth="2" />
                 <text x="730" y="100" textAnchor="middle" className="cv-cap">retiring model</text>
                 <text x="730" y="124" textAnchor="middle" className="cv-name">aurora-large-1</text>
                 <text x="730" y="164" textAnchor="middle" className="cv-oldlabel">404 model_not_found</text>
               </g>
               <g>
-                <rect className="cv-new" x="640" y="276" width="180" height="78" rx="10" fill={COLOR.surface} stroke={COLOR.line} strokeWidth="2" />
+                <rect className="cv-new" x="640" y="276" width="180" height="78" rx="2" fill={COLOR.surface} stroke={COLOR.line} strokeWidth="2" />
                 <text x="730" y="310" textAnchor="middle" className="cv-cap">replacement</text>
                 <text x="730" y="334" textAnchor="middle" className="cv-name">aurora-large-2</text>
               </g>
-              {Array.from({ length: 28 }, (_, i) => <circle key={i} className="cv-dot" r="3.4" cx="0" cy="0" fill="#ffecc8" opacity="0" />)}
+              {Array.from({ length: 28 }, (_, i) => <circle key={i} className="cv-dot" r="3.6" cx="0" cy="0" fill={COLOR.text} opacity="0" />)}
             </svg>
             <div className="lp-cv-foot">
               <div className="lp-rulestack">

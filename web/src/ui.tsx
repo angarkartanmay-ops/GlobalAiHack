@@ -235,12 +235,12 @@ export function ShareBar({ share, risk }: { share: number; risk?: boolean }) {
 export function Ring({ score, tone }: { score: number; tone: "ok" | "warn" | "bad" }) {
   const r = 58;
   const c = 2 * Math.PI * r;
-  const color = tone === "ok" ? "var(--aurora)" : tone === "warn" ? "var(--beacon)" : "var(--ember)";
+  const color = tone === "ok" ? "var(--aurora)" : tone === "warn" ? "var(--sun)" : "var(--ember)";
   return (
     <div className="ring" role="img" aria-label={`Score ${Math.round(score)} percent`}>
       <svg width="132" height="132" viewBox="0 0 132 132">
-        <circle cx="66" cy="66" r={r} fill="none" stroke="var(--surface-3)" strokeWidth="8" />
-        <circle cx="66" cy="66" r={r} fill="none" stroke={color} strokeWidth="8" strokeLinecap="round"
+        <circle cx="66" cy="66" r={r} fill="none" stroke="var(--sunk-2)" strokeWidth="9" />
+        <circle cx="66" cy="66" r={r} fill="none" stroke={color} strokeWidth="9"
           strokeDasharray={`${(Math.max(0, Math.min(100, score)) / 100) * c} ${c}`} />
       </svg>
       <div className="ring-num"><span>{Math.round(score)}<small>%</small></span></div>
@@ -282,25 +282,4 @@ export function usePoll<T>(load: () => Promise<T>, intervalMs: number, deps: unk
   }, [intervalMs, enabled, ...deps]);
 
   return { data, error, loading, refresh };
-}
-
-/** Counts up once when it first appears. Later value changes snap, so polling never replays it. */
-export function CountUp({ to, fmt = (n) => String(Math.round(n)), ms = 900 }: { to: number; fmt?: (n: number) => string; ms?: number }) {
-  const reduce = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const [v, setV] = useState(reduce ? to : 0);
-  const played = useRef(false);
-  useEffect(() => {
-    if (played.current || reduce) { setV(to); return; }
-    played.current = true;
-    let raf = 0;
-    const t0 = performance.now();
-    const step = (now: number) => {
-      const k = Math.min(1, (now - t0) / ms);
-      setV(to * (1 - Math.pow(1 - k, 3)));
-      if (k < 1) raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [to]); // eslint-disable-line react-hooks/exhaustive-deps
-  return <>{fmt(v)}</>;
 }

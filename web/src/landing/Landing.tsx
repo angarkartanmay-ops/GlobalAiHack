@@ -2,7 +2,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ArrowRight, ArrowUpRight, Check, Copy, Circle } from "lucide-react";
 import "./landing.css";
 import { gsap, ScrollTrigger, scrollToId, startSmoothScroll, useReveal } from "./motion";
-import { Sky, type SkyState } from "./Sky";
+import { Mark } from "../App";
+import { Sunset, type Sun } from "../Sunset";
 import { Horizon, Problem, Steps } from "./scenesA";
 import { Cutover, Grounding, Rehearsal } from "./scenesB";
 
@@ -20,91 +21,57 @@ const INDEX: [string, string][] = [
   ["start", "Try it"],
 ];
 
-function Mark() {
-  return (
-    <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true">
-      <rect width="32" height="32" rx="7" fill="var(--surface-2)" />
-      <path d="M5 22.5c4-9.5 18-9.5 22 0" fill="none" stroke="var(--beacon)" strokeWidth="2.4" strokeLinecap="round" />
-      <circle cx="16" cy="14" r="3.2" fill="var(--beacon)" />
-    </svg>
-  );
-}
+// The simulator's own scenario: four retiring models on one gateway.
+const DEMO: Sun[] = [
+  { id: "aurora/aurora-instant-0", label: "aurora-instant-0", days: -5, share: 0.03 },
+  { id: "aurora/aurora-large-1", label: "aurora-large-1", days: 23, share: 0.77 },
+  { id: "aurora/aurora-mini-1", label: "aurora-mini-1", days: 96, share: 0.13 },
+  { id: "lumen/lumen-chat-2-0815", label: "lumen-chat-2-0815", days: 110, share: 0.02 },
+];
 
 function Hero({ onOpen }: { onOpen: () => void }) {
   const root = useRef<HTMLElement>(null);
-  const sky = useRef<SkyState>({ p: 0 });
+  const [elapsed, setElapsed] = useState(0);
 
+  // Scrolling the hero moves time forward, so the suns sink toward the horizon.
   useLayoutEffect(() => {
     const el = root.current!;
     const mm = gsap.matchMedia();
     mm.add("(prefers-reduced-motion: no-preference)", () => {
-      const q = gsap.utils.selector(el);
-      gsap.from(q(".lp-line > span"), { yPercent: 118, duration: 1.2, ease: "power4.out", stagger: 0.1, delay: 0.2 });
-      gsap.from(q(".lp-fade"), { opacity: 0, y: 20, duration: 1, ease: "power3.out", stagger: 0.09, delay: 0.7 });
-      gsap.to(q(".lp-hero-copy"), {
-        yPercent: -14,
-        opacity: 0,
-        ease: "none",
-        scrollTrigger: { trigger: el, start: "top top", end: "bottom 35%", scrub: true },
-      });
       ScrollTrigger.create({
         trigger: el,
         start: "top top",
-        end: "bottom top",
-        scrub: true,
-        onUpdate: (s) => {
-          sky.current.p = s.progress;
-        },
+        end: "bottom 35%",
+        onUpdate: (s) => setElapsed(Math.round(s.progress * 36 * 4) / 4),
       });
     });
     return () => mm.revert();
   }, []);
 
+  const day = Math.round(elapsed);
   return (
     <section ref={root} className="lp-hero" id="top">
-      <Sky state={sky} />
-      <div className="lp-hero-fade" aria-hidden="true" />
       <div className="lp-wrap lp-hero-copy">
-        <p className="lp-eyebrow lp-fade"><i />Bifrost × Tavily · Geek Room Global AI Hackathon 2026</p>
-        <h1 className="lp-h1"><span className="lp-line"><span>Heimdall</span></span></h1>
-        <p className="lp-sub">
-          <span className="lp-line"><span>The watchman for</span></span>
-          <span className="lp-line"><span className="lp-amber">your AI gateway.</span></span>
-        </p>
-        <p className="lp-lede lp-fade">
-          Heimdall reads which models your Bifrost gateway depends on, finds the retirement notices providers have published, proves the replacement on your real traffic, and moves traffic with one reversible routing rule.
-        </p>
-        <div className="lp-cta lp-fade">
-          <button className="lp-btn primary" onClick={onOpen}>Open the live demo <ArrowRight size={17} /></button>
-          <button className="lp-btn" onClick={() => scrollToId("problem")}>See how it works</button>
+        <p className="lp-kicker">A retirement watch for the Bifrost AI gateway</p>
+        <h1 className="lp-h1">Every model you call has a shutdown date.</h1>
+        <div className="lp-hero-row">
+          <p className="lp-lede">
+            Heimdall reads which models your gateway depends on, finds the retirement notices their providers have published, tests the replacement on your logged traffic, and moves the traffic over with one routing rule you can undo.
+          </p>
+          <div className="lp-cta">
+            <button className="lp-btn primary" onClick={onOpen}>Open the live demo <ArrowRight size={17} /></button>
+            <button className="lp-btn" onClick={() => scrollToId("problem")}>How it works</button>
+          </div>
         </div>
-        <p className="lp-facts lp-fade"><span>Runs on a stock Bifrost image</span><span>Evidence quoted from the source</span><span>MIT licensed</span></p>
       </div>
-      <button className="lp-cue" onClick={() => scrollToId("problem")} aria-label="Scroll to the story"><span>Scroll</span><i /></button>
+      <figure className="lp-hero-chart">
+        <figcaption className="lp-wrap lp-figcap">
+          <span>Four models on one gateway, by days until shutdown. Scroll, and the days pass.</span>
+          <b>{day === 0 ? "Today" : `Day ${day}`}</b>
+        </figcaption>
+        <Sunset suns={DEMO} elapsed={elapsed} tall width={1440} />
+      </figure>
     </section>
-  );
-}
-
-function Marquee() {
-  const ref = useRef<HTMLDivElement>(null);
-  useLayoutEffect(() => {
-    const el = ref.current!;
-    const mm = gsap.matchMedia();
-    mm.add("(prefers-reduced-motion: no-preference)", () => {
-      gsap.fromTo(el.querySelector(".lp-marquee-track"), { xPercent: 0 }, {
-        xPercent: -50,
-        ease: "none",
-        scrollTrigger: { trigger: el, start: "top bottom", end: "bottom top", scrub: 0.6 },
-      });
-    });
-    return () => mm.revert();
-  }, []);
-  const words = ["model_not_found", "shutdown_date", "deprecated", "410 gone", "fallback", "canary", "retired", "end of life"];
-  const run = (k: string) => words.map((w) => <span key={k + w}>{w}</span>);
-  return (
-    <div ref={ref} className="lp-marquee" aria-hidden="true">
-      <div className="lp-marquee-track">{run("a")}{run("b")}{run("c")}{run("d")}</div>
-    </div>
   );
 }
 
@@ -132,7 +99,6 @@ function Boundary() {
       <section ref={ref} className="lp-block lp-boundary">
         <div className="lp-wrap lp-grid lp-grid-g">
           <div className="lp-copy lp-sticky">
-            <p className="lp-eyebrow"><i />One boundary</p>
             <h2 className="lp-h2">Everything goes through Bifrost.</h2>
             <p className="lp-p">No fork, no patched binary, no plugin to compile. Heimdall uses public endpoints on a stock install, and holds one virtual key and the gateway's admin login. No provider keys, no Tavily key.</p>
           </div>
@@ -167,7 +133,6 @@ function Honest() {
   return (
     <section ref={ref} className="lp-block lp-honest">
       <div className="lp-wrap">
-        <p className="lp-eyebrow"><i />Stated plainly</p>
         <h2 className="lp-h2 lp-h2-wide">What is verified, and what is not yet.</h2>
         <div className="lp-honest-grid">
           <div>
@@ -201,8 +166,7 @@ function Closing({ onOpen }: { onOpen: () => void }) {
     <div id="start">
       <section ref={ref} className="lp-block lp-closing">
         <div className="lp-wrap">
-          <p className="lp-eyebrow lp-rv"><i />Try it</p>
-          <h2 className="lp-h2 lp-h2-wide lp-rv">One command. No keys.</h2>
+          <h2 className="lp-h2 lp-h2-wide lp-rv">Try it with one command. No keys needed.</h2>
           <p className="lp-p lp-rv">With none set, Heimdall runs a real Bifrost gateway with simulated providers, a simulated web and four simulated applications. Add a provider key, a Tavily key and a dashboard token, restart, and the same container runs live.</p>
           <div className="lp-code lp-rv">
             <code>{COMMAND}</code>
@@ -215,7 +179,7 @@ function Closing({ onOpen }: { onOpen: () => void }) {
         </div>
         <footer className="lp-wrap lp-foot">
           <span>Heimdall. Built for the Geek Room Global AI Hackathon 2026.</span>
-          <span>Built with AI assistance (Claude Code). MIT licensed.</span>
+          <span>MIT licensed.</span>
         </footer>
       </section>
     </div>
@@ -224,7 +188,6 @@ function Closing({ onOpen }: { onOpen: () => void }) {
 
 export default function Landing({ onOpen }: { onOpen: () => void }) {
   const [active, setActive] = useState("");
-  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.add("lp-on");
@@ -251,17 +214,15 @@ export default function Landing({ onOpen }: { onOpen: () => void }) {
         },
       }),
     );
-    const nav = ScrollTrigger.create({ start: 60, end: "max", refreshPriority: -1, onToggle: (s) => setScrolled(s.isActive) });
     return () => {
       triggers.forEach((t) => t.kill());
-      nav.kill();
     };
   }, []);
 
   return (
     <div className="lp">
-      <header className={`lp-nav${scrolled ? " solid" : ""}`}>
-        <button className="lp-brand" onClick={() => scrollToId("top")} aria-label="Heimdall, back to the top"><Mark /><span>Heimdall</span></button>
+      <header className="lp-nav">
+        <button className="lp-brand" onClick={() => scrollToId("top")} aria-label="Heimdall, back to the top"><Mark size={26} /><span>Heimdall</span></button>
         <nav aria-label="Sections">
           {INDEX.filter(([id]) => ["problem", "how", "evidence", "cutover", "start"].includes(id)).map(([id, label]) => (
             <button key={id} onClick={() => scrollToId(id)} className={active === id ? "on" : ""}>{label}</button>
@@ -270,17 +231,8 @@ export default function Landing({ onOpen }: { onOpen: () => void }) {
         <button className="lp-btn sm" onClick={onOpen}>Open dashboard</button>
       </header>
 
-      <nav className="lp-dots" aria-label="Page sections">
-        {INDEX.map(([id, label]) => (
-          <button key={id} onClick={() => scrollToId(id)} className={active === id ? "on" : ""} aria-label={label} aria-current={active === id ? "true" : undefined}>
-            <span>{label}</span><i />
-          </button>
-        ))}
-      </nav>
-
       <main>
         <Hero onOpen={onOpen} />
-        <Marquee />
         <Problem />
         <Horizon />
         <Steps />

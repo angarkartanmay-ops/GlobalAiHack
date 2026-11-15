@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { ChevronRight, RefreshCw } from "lucide-react";
 import { api, type Exposure, type Overview, type Status } from "../api";
-import { ConfidenceTag, CountUp, Notice, ShareBar, Spinner, StatusTag, VerdictTag, ago, longDate, modelName, money, num, pct, windowLabel } from "../ui";
+import { Sunset, type Sun } from "../Sunset";
+import { ConfidenceTag, Notice, ShareBar, Spinner, StatusTag, VerdictTag, ago, longDate, modelName, money, num, pct, windowLabel } from "../ui";
 
 const stageText: Record<string, string> = { armed: "Safety net armed", canary: "Canary", promoted: "Cut over" };
 
@@ -9,75 +10,19 @@ function atRisk(e: Exposure): boolean {
   return e.finding?.status === "deprecated" || e.finding?.status === "retired";
 }
 
-function riskColor(risk: string): string {
-  return risk === "critical" ? "var(--ember)" : risk === "high" ? "var(--beacon)" : "var(--fjord)";
-}
-
 /** The horizon: every retiring model placed by how long it has left, sized by how much traffic rides on it. */
 function Horizon({ exposures, onOpen }: { exposures: Exposure[]; onOpen: (id: string) => void }) {
-  const items = exposures.filter((e) => atRisk(e) && e.days_left !== undefined);
-  if (items.length === 0) return null;
-  const W = 1000, H = 172, axisY = 96, x0 = 118, x1 = 968;
-  const maxDays = Math.min(365, Math.max(120, Math.ceil(Math.max(...items.map((e) => e.days_left ?? 0)) / 30) * 30 + 15));
-  const xOf = (d: number) => x0 + (Math.min(d, maxDays) / maxDays) * (x1 - x0);
-  const ticks: number[] = [];
-  for (let d = 30; d <= maxDays; d += maxDays > 200 ? 60 : 30) ticks.push(d);
-
-  const past = items.filter((e) => (e.days_left ?? 0) < 0);
-  const future = items.filter((e) => (e.days_left ?? 0) >= 0).sort((a, b) => (a.days_left ?? 0) - (b.days_left ?? 0));
-
-  // Alternate labels above and below the line; push apart labels that would collide.
-  let lastAbove = -Infinity, lastBelow = -Infinity;
-  const placed = future.map((e, i) => {
-    const x = xOf(e.days_left ?? 0);
-    let above = (i + (past.length ? 1 : 0)) % 2 === 0;
-    const sameSide = above ? lastAbove : lastBelow;
-    const otherSide = above ? lastBelow : lastAbove;
-    if (x - sameSide < 170 && x - otherSide > x - sameSide) above = !above;
-    if (above) lastAbove = x; else lastBelow = x;
-    return { e, x, above };
-  });
-
-  const mark = (e: Exposure, x: number, above: boolean, anchor: "start" | "middle" | "end", key: string) => {
-    const share = e.traffic?.request_share ?? 0;
-    const r = 6 + 15 * Math.sqrt(share);
-    const color = riskColor(e.risk);
-    const id = `${e.provider}/${e.model}`;
-    const labelY = above ? axisY - r - 26 : axisY + r + 22;
-    const d = e.days_left ?? 0;
-    const when = d < 0 ? `shut down ${-d} d ago` : d === 0 ? "shuts down today" : `${d} days`;
-    return (
-      <g key={key} className="hz-mark" role="button" tabIndex={0} aria-label={`${id}, ${when}, ${pct(share)} of requests`}
-        onClick={() => onOpen(id)} onKeyDown={(ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); onOpen(id); } }}>
-        <circle cx={x} cy={axisY} r={r + 5} fill={color} opacity="0.14" />
-        <circle className="core" cx={x} cy={axisY} r={r} fill={color} stroke="var(--surface)" strokeWidth="2" />
-        <line x1={x} y1={above ? axisY - r - 3 : axisY + r + 3} x2={x} y2={above ? labelY + 20 : labelY - 14} stroke="var(--line)" strokeWidth="1" />
-        <text className="hz-model" x={x} y={labelY} textAnchor={anchor}>{e.model}</text>
-        <text className="hz-days" x={x} y={labelY + 15} textAnchor={anchor}>{when} · {pct(share)} of requests</text>
-      </g>
-    );
-  };
-
+  const suns: Sun[] = exposures
+    .filter((e) => atRisk(e) && e.days_left !== undefined)
+    .map((e) => ({ id: `${e.provider}/${e.model}`, label: e.model, days: e.days_left ?? 0, share: e.traffic?.request_share ?? 0 }));
+  if (suns.length === 0) return null;
   return (
     <div className="horizon">
       <div className="horizon-head">
         <div className="panel-title">Shutdown horizon</div>
-        <div className="muted" style={{ fontSize: 13 }}>Circle size is the share of requests the model carries today</div>
+        <div className="muted" style={{ fontSize: 13.5 }}>The lower a model sits, the sooner it is shut down. Size is its share of requests today.</div>
       </div>
-      <svg viewBox={`0 0 ${W} ${H}`} role="group" aria-label="Timeline of scheduled model shutdowns">
-        <line x1={24} y1={axisY} x2={x0} y2={axisY} stroke="var(--ember)" strokeWidth="2" strokeDasharray="2 5" opacity="0.55" />
-        <line x1={x0} y1={axisY} x2={x1} y2={axisY} stroke="var(--line)" strokeWidth="2" />
-        <line x1={x0} y1={axisY - 13} x2={x0} y2={axisY + 30} stroke="var(--text-2)" strokeWidth="1.5" />
-        <text className="hz-tick" x={x0} y={axisY + 46} textAnchor="middle" style={{ fill: "var(--text-2)", fontWeight: 600 }}>Today</text>
-        {ticks.map((d) => (
-          <g key={d}>
-            <line x1={xOf(d)} y1={axisY - 5} x2={xOf(d)} y2={axisY + 5} stroke="var(--line)" strokeWidth="1.5" />
-            <text className="hz-tick" x={xOf(d)} y={H - 4} textAnchor="middle">{d} d</text>
-          </g>
-        ))}
-        {past.map((e, i) => mark(e, 62 - i * 6, true, "start", `p${i}`))}
-        {placed.map(({ e, x, above }, i) => mark(e, x, above, x > x1 - 110 ? "end" : x < x0 + 40 ? "start" : "middle", `f${i}`))}
-      </svg>
+      <Sunset suns={suns} onOpen={onOpen} />
     </div>
   );
 }
@@ -173,12 +118,12 @@ export function Watch({ overview, status, loading, error, onOpen, onNavigate, re
           <div className="figures">
             <div className="figure">
               <div className="figure-label">Models serving traffic</div>
-              <div className="figure-value"><CountUp to={s.models} /></div>
+              <div className="figure-value">{s.models}</div>
               <div className="figure-note">{win ? `${num(win.requests)} requests in the last ${windowLabel(win.days)}` : ""}</div>
             </div>
             <div className="figure">
               <div className="figure-label">Scheduled for shutdown</div>
-              <div className={`figure-value ${s.at_risk ? "alert" : ""}`}><CountUp to={s.at_risk} /></div>
+              <div className={`figure-value ${s.at_risk ? "alert" : ""}`}>{s.at_risk}</div>
               <div className="figure-note">
                 {retiredLive ? `${retiredLive} already shut down and still called` : s.at_risk ? "None has been shut down yet" : s.unchecked ? `${s.unchecked} not checked yet` : "No retirement notices found"}
               </div>
@@ -186,13 +131,13 @@ export function Watch({ overview, status, loading, error, onOpen, onNavigate, re
             <div className="figure">
               <div className="figure-label">Nearest shutdown</div>
               <div className={`figure-value ${s.nearest && s.nearest.days <= 14 ? "crit" : s.nearest && s.nearest.days <= 45 ? "alert" : ""}`}>
-                {s.nearest ? <><CountUp to={s.nearest.days} /><small>{s.nearest.days === 1 ? "day" : "days"}</small></> : "—"}
+                {s.nearest ? <>{s.nearest.days}<small>{s.nearest.days === 1 ? "day" : "days"}</small></> : "—"}
               </div>
               <div className="figure-note">{s.nearest ? <><span className="mono">{modelName(s.nearest.model)}</span> on {longDate(s.nearest.date)}</> : "Nothing scheduled"}</div>
             </div>
             <div className="figure">
               <div className="figure-label">Requests on retiring models</div>
-              <div className={`figure-value ${s.share_at_risk > 0 ? "alert" : ""}`}><CountUp to={s.share_at_risk} fmt={(n) => pct(n)} /></div>
+              <div className={`figure-value ${s.share_at_risk > 0 ? "alert" : ""}`}>{pct(s.share_at_risk)}</div>
               <div className="figure-note">
                 {s.at_risk ? `${money(s.daily_cost_at_risk)} a day${partialDay ? " at the current rate" : ""} · ${s.consumers_at_risk} ${s.consumers_at_risk === 1 ? "application" : "applications"}` : "Nothing exposed"}
               </div>
